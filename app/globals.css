@@ -1,0 +1,94 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  /* Navy (Background) */
+  --color-navy-950: #0a0e1a;
+  --color-navy-900: #0f1629;
+  --color-navy-800: #151d38;
+
+  /* Surface (Cards, Panels) */
+  --color-surface-900: #111827;
+  --color-surface-800: #1a2236;
+  --color-surface-700: #263049;
+  --color-surface-600: #334155;
+  --color-surface-500: #475569;
+  --color-surface-400: #94a3b8;
+  --color-surface-300: #cbd5e1;
+  --color-surface-200: #e2e8f0;
+
+  /* Crimson (Brand) */
+  --color-crimson-700: #a21d2b;
+  --color-crimson-600: #c62231;
+  --color-crimson-500: #dc2626;
+  --color-crimson-400: #ef4444;
+}
+
+:root {
+  --background: #0a0e1a;
+  --foreground: #e2e8f0;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #263049 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #263049;
+  border-radius: 3px;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+}
+
+/* Custom animations */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slide-in-right {
+  from { opacity: 0; transform: translateX(12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px 0 rgba(220, 38, 38, 0.2); }
+  50% { box-shadow: 0 0 20px 4px rgba(220, 38, 38, 0.3); }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Glass card utility */
+.glass-card {
+  background: rgba(26, 34, 54, 0.5);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(38, 48, 73, 0.5);
+}
