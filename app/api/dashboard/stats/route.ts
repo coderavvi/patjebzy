@@ -3,24 +3,38 @@ import connectDB from "@/lib/db";
 import Sale from "@/models/Sale";
 import Product from "@/models/Product";
 import { auth } from "@/lib/auth";
+import mongoose from "mongoose";
 
 export async function GET() {
   try {
     const session = await auth();
-    if (!session || session.user.role !== "admin") {
+    if (!session) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
     }
 
     await connectDB();
+
+    const isSalesRep = session.user.role === "sales_rep";
+    const userId = session.user.id;
 
     const now = new Date();
     const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
 
+    // Filter for sales rep
+    const baseFilter: Record<string, any> = isSalesRep 
+      ? { soldBy: new mongoose.Types.ObjectId(userId) } 
+      : {};
+
     // Current month stats
     const currentStats = await Sale.aggregate([
-      { $match: { createdAt: { $gte: startOfCurrentMonth } } },
+      { 
+        $match: { 
+          createdAt: { $gte: startOfCurrentMonth },
+          ...baseFilter
+        } 
+      },
       {
         $group: {
           _id: null,
@@ -36,6 +50,7 @@ export async function GET() {
       {
         $match: {
           createdAt: { $gte: startOfLastMonth, $lte: endOfLastMonth },
+          ...baseFilter
         },
       },
       {
@@ -50,6 +65,9 @@ export async function GET() {
 
     // Total stats
     const allTimeStats = await Sale.aggregate([
+      {
+        $match: baseFilter
+      },
       {
         $group: {
           _id: null,
