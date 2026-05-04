@@ -17,6 +17,7 @@ export interface ISaleDocument extends Document {
   totalProfit: number;
   customerName?: string;
   customerPhone?: string;
+  discount: number;
   notes?: string;
   soldBy: mongoose.Types.ObjectId;
   createdAt: Date;
@@ -83,6 +84,11 @@ const SaleSchema = new Schema<ISaleDocument>(
       required: true,
       default: 0,
     },
+    discount: {
+      type: Number,
+      default: 0,
+      min: [0, "Discount cannot be negative"],
+    },
     customerName: {
       type: String,
       trim: true,
@@ -113,6 +119,10 @@ SaleSchema.pre("save", async function () {
     this.saleNumber = `SAL-${String(count + 1).padStart(5, "0")}`;
   }
 });
+
+if (process.env.NODE_ENV === "development") {
+  delete mongoose.models.Sale;
+}
 
 const Sale: Model<ISaleDocument> =
   mongoose.models.Sale || mongoose.model<ISaleDocument>("Sale", SaleSchema);

@@ -49,8 +49,17 @@ export default function MySalesPage() {
       },
     },
     {
+      key: "discount",
+      label: "Discount",
+      render: (item: Record<string, unknown>) => (
+        <span className={Number(item.discount) > 0 ? "text-red-400" : "text-surface-500"}>
+          {formatCurrency(item.discount as number)}
+        </span>
+      ),
+    },
+    {
       key: "totalAmount",
-      label: "Amount",
+      label: "Total",
       render: (item: Record<string, unknown>) => (
         <span className="font-semibold text-emerald-400">
           {formatCurrency(item.totalAmount as number)}
@@ -136,11 +145,19 @@ export default function MySalesPage() {
               </div>
             </div>
 
-            <div className="border-t border-surface-700 pt-4 flex justify-between">
-              <span className="text-surface-300 font-medium">Total</span>
-              <span className="text-lg font-bold text-emerald-400">
-                {formatCurrency(selectedSale?.totalAmount as number)}
-              </span>
+            <div className="border-t border-surface-700 pt-4 space-y-2">
+              {Number(selectedSale?.discount) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-surface-300">Discount</span>
+                  <span className="text-red-400">-{formatCurrency(selectedSale?.discount as number)}</span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-surface-300 font-medium">Total Amount</span>
+                <span className="text-lg font-bold text-emerald-400">
+                  {formatCurrency(selectedSale?.totalAmount as number)}
+                </span>
+              </div>
             </div>
           </div>
         </DialogContent>

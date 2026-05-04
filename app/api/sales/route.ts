@@ -118,10 +118,15 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Create the sale record
+    const discount = validated.discount || 0;
+    const finalTotal = totalAmount - discount;
+    const finalProfit = totalProfit - discount;
+
     const sale = await Sale.create({
       items: saleItems,
-      totalAmount,
-      totalProfit,
+      totalAmount: finalTotal,
+      totalProfit: finalProfit,
+      discount,
       customerName: validated.customerName,
       customerPhone: validated.customerPhone,
       notes: validated.notes,

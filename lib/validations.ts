@@ -24,6 +24,7 @@ export const createSaleSchema = z.object({
     .min(1, "At least one item is required"),
   customerName: z.string().optional(),
   customerPhone: z.string().optional(),
+  discount: z.number().min(0).optional().default(0),
   notes: z.string().optional(),
 });
 

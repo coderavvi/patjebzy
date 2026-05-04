@@ -38,6 +38,8 @@ export default function RecordSalePage() {
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [notes, setNotes] = useState("");
+  const [showDiscount, setShowDiscount] = useState(false);
+  const [discount, setDiscount] = useState(0);
   const [submitting, setSubmitting] = useState(false);
 
   const handleProductChange = (index: number, productId: string) => {
@@ -73,7 +75,8 @@ export default function RecordSalePage() {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const total = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+  const total = Math.max(0, subtotal - discount);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -108,6 +111,7 @@ export default function RecordSalePage() {
           })),
           customerName: customerName || undefined,
           customerPhone: customerPhone || undefined,
+          discount: showDiscount ? discount : 0,
           notes: notes || undefined,
         }),
       });
@@ -153,9 +157,9 @@ export default function RecordSalePage() {
               {items.map((item, index) => (
                 <div
                   key={index}
-                  className="grid grid-cols-12 gap-3 items-end p-3 rounded-lg bg-surface-900/50"
+                  className="grid grid-cols-12 gap-3 items-start sm:items-end p-4 rounded-lg bg-surface-900/50"
                 >
-                  <div className="col-span-5">
+                  <div className="col-span-12 sm:col-span-5">
                     <Label className="text-xs">Product</Label>
                     <Select
                       value={item.product}
@@ -164,7 +168,7 @@ export default function RecordSalePage() {
                       placeholder="Select product"
                     />
                   </div>
-                  <div className="col-span-2">
+                  <div className="col-span-8 sm:col-span-2">
                     <Label className="text-xs">Qty</Label>
                     <Input
                       type="number"
@@ -174,32 +178,36 @@ export default function RecordSalePage() {
                       onChange={(e) => handleQuantityChange(index, Number(e.target.value))}
                     />
                   </div>
-                  <div className="col-span-2">
-                    <Label className="text-xs">Unit Price</Label>
-                    <div className="h-10 flex items-center text-sm text-surface-300">
-                      {formatCurrency(item.unitPrice)}
-                    </div>
-                  </div>
-                  <div className="col-span-2">
-                    <Label className="text-xs">Subtotal</Label>
-                    <div className="h-10 flex items-center text-sm font-semibold text-emerald-400">
-                      {formatCurrency(item.unitPrice * item.quantity)}
-                    </div>
-                  </div>
-                  <div className="col-span-1 flex justify-end">
+                  <div className="col-span-4 sm:col-span-1 flex justify-end sm:order-last">
+                    <div className="sm:hidden">&nbsp;</div> {/* Spacer for mobile Label alignment */}
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
                       onClick={() => removeItem(index)}
                       disabled={items.length === 1}
+                      className="mt-6 sm:mt-0"
                     >
                       <Trash2 className="h-4 w-4 text-red-400" />
                     </Button>
                   </div>
+                  
+                  <div className="col-span-12 sm:col-span-2 border-t sm:border-0 border-surface-700/50 pt-2 sm:pt-0">
+                    <Label className="text-xs text-surface-400">Unit Price</Label>
+                    <div className="h-8 sm:h-10 flex items-center text-sm text-surface-300">
+                      {formatCurrency(item.unitPrice)}
+                    </div>
+                  </div>
+                  
+                  <div className="col-span-12 sm:col-span-2 border-t sm:border-0 border-surface-700/50 pt-2 sm:pt-0">
+                    <Label className="text-xs text-surface-400">Subtotal</Label>
+                    <div className="h-8 sm:h-10 flex items-center text-sm font-semibold text-emerald-400">
+                      {formatCurrency(item.unitPrice * item.quantity)}
+                    </div>
+                  </div>
 
                   {item.product && item.quantity > item.available && (
-                    <div className="col-span-12">
+                    <div className="col-span-12 mt-2">
                       <Badge variant="danger">
                         Exceeds stock! Only {item.available} available
                       </Badge>
@@ -209,46 +217,92 @@ export default function RecordSalePage() {
               ))}
             </div>
 
-            {/* Total */}
-            <div className="mt-4 pt-4 border-t border-surface-700 flex justify-between items-center">
-              <span className="text-surface-300 font-medium">Total Amount</span>
-              <span className="text-2xl font-bold text-emerald-400">
-                {formatCurrency(total)}
-              </span>
+            {/* Total Summary */}
+            <div className="mt-4 pt-4 border-t border-surface-700 space-y-2">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-surface-400">Subtotal</span>
+                <span className="text-surface-200">{formatCurrency(subtotal)}</span>
+              </div>
+              
+              {showDiscount && (
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-red-400">Discount</span>
+                  <span className="text-red-400">-{formatCurrency(discount)}</span>
+                </div>
+              )}
+
+              <div className="flex justify-between items-center pt-2">
+                <span className="text-surface-100 font-bold">Total Amount</span>
+                <span className="text-2xl font-bold text-emerald-400">
+                  {formatCurrency(total)}
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Customer Info */}
-          <div className="rounded-xl border border-surface-700/50 bg-surface-800/50 p-6">
-            <h3 className="text-lg font-semibold text-white mb-4">
-              Customer Information{" "}
-              <span className="text-xs text-surface-400 font-normal">(optional)</span>
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label>Customer Name</Label>
-                <Input
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="e.g. John Doe"
+          {/* Discount and Customer Info */}
+          <div className="rounded-xl border border-surface-700/50 bg-surface-800/50 p-6 space-y-6">
+            <div>
+              <div className="flex items-center space-x-2 mb-4">
+                <input
+                  type="checkbox"
+                  id="add-discount"
+                  checked={showDiscount}
+                  onChange={(e) => {
+                    setShowDiscount(e.target.checked);
+                    if (!e.target.checked) setDiscount(0);
+                  }}
+                  className="w-4 h-4 rounded border-surface-600 bg-surface-900 text-emerald-500 focus:ring-emerald-500"
                 />
+                <Label htmlFor="add-discount" className="cursor-pointer">Add Discount</Label>
               </div>
-              <div className="grid gap-2">
-                <Label>Phone Number</Label>
-                <Input
-                  value={customerPhone}
-                  onChange={(e) => setCustomerPhone(e.target.value)}
-                  placeholder="e.g. 08012345678"
-                />
-              </div>
+
+              {showDiscount && (
+                <div className="grid gap-2 animate-fade-in">
+                  <Label>Discount Amount</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={subtotal}
+                    value={discount}
+                    onChange={(e) => setDiscount(Number(e.target.value))}
+                    placeholder="Enter discount amount"
+                  />
+                </div>
+              )}
             </div>
-            <div className="grid gap-2 mt-4">
-              <Label>Notes</Label>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                placeholder="Any additional notes..."
-              />
+
+            <div className="pt-4 border-t border-surface-700/50">
+              <h3 className="text-lg font-semibold text-white mb-4">
+                Customer Information{" "}
+                <span className="text-xs text-surface-400 font-normal">(optional)</span>
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Customer Name</Label>
+                  <Input
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="e.g. John Doe"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label>Phone Number</Label>
+                  <Input
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="e.g. 08012345678"
+                  />
+                </div>
+              </div>
+              <div className="grid gap-2 mt-4">
+                <Label>Notes</Label>
+                <Textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Any additional notes..."
+                />
+              </div>
             </div>
           </div>
 
